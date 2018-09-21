@@ -76,9 +76,14 @@ func (obj *Chessboard) CreateWindow() {
 	ButtonSetImgFromFile(obj.buttonClose, "./images/close.png")
 
 	/*标签相关*/
-	lableBlack := gtk.LabelFromObject(builder.GetObject("lableBlack"))
-	lableWhite := gtk.LabelFromObject(builder.GetObject("lableWhite"))
-	lableTime := gtk.LabelFromObject(builder.GetObject("lableTime"))
+	obj.lableBlack = gtk.LabelFromObject(builder.GetObject("lableBlack"))
+	obj.lableWhite = gtk.LabelFromObject(builder.GetObject("lableWhite"))
+	obj.lableTime = gtk.LabelFromObject(builder.GetObject("lableTime"))
+
+	//设置字体大小
+	obj.lableBlack.ModifyFontSize(50)
+	obj.lableWhite.ModifyFontSize(50)
+	obj.lableTime.ModifyFontSize(50)
 }
 
 func MousePressEvent(ctx *glib.CallbackContext) {
