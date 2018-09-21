@@ -13,7 +13,7 @@
         <child>
           <object class="GtkButton" id="buttonMin">
             <property name="width_request">40</property>
-            <property name="height_request">25</property>
+            <property name="height_request">40</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="receives_default">True</property>
@@ -28,7 +28,7 @@
         <child>
           <object class="GtkButton" id="buttonClose">
             <property name="width_request">40</property>
-            <property name="height_request">25</property>
+            <property name="height_request">40</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="receives_default">True</property>
@@ -38,6 +38,71 @@
           <packing>
             <property name="x">757</property>
             <property name="y">3</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="labelBlack">
+            <property name="width_request">100</property>
+            <property name="height_request">80</property>
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">label</property>
+          </object>
+          <packing>
+            <property name="x">70</property>
+            <property name="y">85</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="labelWhite">
+            <property name="width_request">100</property>
+            <property name="height_request">80</property>
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">label</property>
+          </object>
+          <packing>
+            <property name="x">630</property>
+            <property name="y">85</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="labelTime">
+            <property name="width_request">100</property>
+            <property name="height_request">62</property>
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">label</property>
+          </object>
+          <packing>
+            <property name="x">350</property>
+            <property name="y">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkImage" id="imageBlack">
+            <property name="width_request">50</property>
+            <property name="height_request">45</property>
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="stock">gtk-missing-image</property>
+          </object>
+          <packing>
+            <property name="x">223</property>
+            <property name="y">10</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkImage" id="imageWhite">
+            <property name="width_request">50</property>
+            <property name="height_request">45</property>
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="stock">gtk-missing-image</property>
+          </object>
+          <packing>
+            <property name="x">528</property>
+            <property name="y">10</property>
           </packing>
         </child>
       </object>
