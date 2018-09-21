@@ -12,7 +12,9 @@ import (
 
 //控件结构体
 type ChessWidget struct {
-	window *gtk.Window
+	window      *gtk.Window
+	buttonMin   *gtk.Button
+	buttonClose *gtk.Button
 }
 
 //控件属性结构体
@@ -32,7 +34,7 @@ func (obj *Chessboard) CreateWindow() {
 	builder := gtk.NewBuilder()
 	builder.AddFromFile("./ui.glade")
 	//窗口相关
-	obj.window = gtk.WindowFromObject(builder.GetObject("window1"))
+	obj.window = gtk.WindowFromObject(builder.GetObject("window"))
 	//允许绘图
 	obj.window.SetAppPaintable(true)
 	//居中显示
@@ -57,12 +59,30 @@ func MousePressEvent(ctx *glib.CallbackContext) {
 	}
 	//保存点击的x,y坐标
 	obj.x, obj.y = int(event.X), int(event.Y)
-	fmt.Println(obj.x, obj.y)
+}
+
+func MouseMoveEvent(ctx *glib.CallbackContext) {
+	arg := ctx.Args(0)
+	event := *(**gdk.EventButton)(unsafe.Pointer(&arg))
+
+	//获取用户传递的参数
+	data := ctx.Data()
+	obj, ok := data.(*Chessboard)
+	if ok == false {
+		fmt.Println("MousePressEvent Chessboard error")
+		return
+	}
+
+	x, y := int(event.XRoot)-obj.x, int(event.YRoot)-obj.y
+	obj.window.Move(x, y)
 }
 
 func (obj *Chessboard) HandleSignal() {
 	//鼠标点击事件
 	obj.window.Connect("button-press-event", MousePressEvent, obj)
+
+	//鼠标移动事件
+	obj.window.Connect("motion-notify-event", MouseMoveEvent, obj)
 }
 
 func main() {
