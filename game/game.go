@@ -43,7 +43,8 @@ type Chessboard struct {
 	timeNum        int
 	machineTimerId int
 
-	chess [8][8]int
+	chess     [8][8]int
+	direction [8][2]int
 }
 
 //枚举,标识黑白子状态
@@ -161,8 +162,8 @@ func MousePressEvent(ctx *glib.CallbackContext) {
 		//下棋
 		if obj.JudgeRule(x, y, obj.CurrentRole, true) > 0 {
 			//改变角色
-			obj.ChangeRole()
 			obj.window.QueueDraw()
+			obj.ChangeRole()
 		}
 	}
 }
@@ -341,6 +342,7 @@ func (obj *Chessboard) MachinePlay() {
 		for j := 0; j < 8; j++ {
 			num := obj.JudgeRule(i, j, obj.CurrentRole, false)
 			if num > 0 {
+				fmt.Println(num, i, j)
 				if (i == 0 && j == 0) || (i == 0 && j == 7) || (i == 7 && j == 0) || (i == 7 && j == 7) {
 					x, y = i, j
 					goto END
@@ -388,7 +390,50 @@ func (obj *Chessboard) ChangeRole() {
 
 //下棋规则
 func (obj *Chessboard) JudgeRule(x, y int, role int, eatChess bool) (eatNum int) {
-	eatNum = 1
+	eatNum = 0
+	canEat := make([][2]int, 0)
+	//遍历方向
+	for _, d := range obj.direction {
+		num := 0
+		chess := make([][2]int, 0)
+		//判断方向是否允许且此方向的结束是否有自己方的棋子
+		postion := [2]int{x, y}
+		for {
+			postion[0], postion[1] = postion[0]+d[0], postion[1]+d[1]
+			//棋子越界
+			if (postion[0] < 0) || (postion[0] > 7) || (postion[1] < 0) || (postion[1] > 7) {
+				break
+			}
+			//规则
+			if obj.chess[postion[0]][postion[1]] == role {
+				//己方棋子
+				break
+			} else if (obj.chess[postion[0]][postion[1]] != role) && (obj.chess[postion[0]][postion[1]] != Empty) {
+				//可吃棋子
+				num++
+				chess = append(chess, postion)
+			} else if obj.chess[postion[0]][postion[1]] == Empty {
+				//棋子不连贯
+				num = 0
+				chess = make([][2]int, 0, 0)
+				break
+			}
+		}
+		//记录棋子
+		if num > 0 {
+			eatNum += num
+			canEat = append(canEat, chess...)
+		}
+	}
+	if !eatChess {
+		return
+	}
+	//吃棋
+	for _, eat := range canEat {
+		obj.chess[eat[0]][eat[1]] = role
+	}
+	//下子
+	obj.chess[x][y] = role
 	return
 }
 
@@ -442,6 +487,7 @@ func main() {
 	gtk.Init(&os.Args)
 
 	var obj Chessboard
+	obj.direction = [8][2]int{{-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}}
 	obj.CreateWindow()
 	obj.HandleSignal()
 	obj.window.Show()
