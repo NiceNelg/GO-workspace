@@ -37,10 +37,11 @@ type Chessboard struct {
 	ChessWidget
 	ChessInfo
 
-	CurrentRole int
-	tipTimeId   int
-	endTimeId   int
-	timeNum     int
+	CurrentRole    int
+	tipTimeId      int
+	endTimeId      int
+	timeNum        int
+	machineTimerId int
 
 	chess [8][8]int
 }
@@ -52,6 +53,20 @@ const (
 	White
 )
 
+//从文件设置图片
+func ImgSetPicFromFile(image *gtk.Image, filename string) {
+	//获取image大小
+	w, h := 0, 0
+	image.GetSizeRequest(&w, &h)
+	//创建pixbuf
+	pixbuf, _ := gdkpixbuf.NewPixbufFromFileAtScale(filename, w-10, h-10, false)
+	//给image设置图片
+	image.SetFromPixbuf(pixbuf)
+	//释放图片
+	pixbuf.Unref()
+}
+
+//设置按钮相关
 func ButtonSetImgFromFile(butto *gtk.Button, filename string) {
 	//获取按钮大小
 	w, h := 0, 0
@@ -69,18 +84,7 @@ func ButtonSetImgFromFile(butto *gtk.Button, filename string) {
 	butto.SetCanFocus(false)
 }
 
-func ImgSetPicFromFile(image *gtk.Image, filename string) {
-	//获取image大小
-	w, h := 0, 0
-	image.GetSizeRequest(&w, &h)
-	//创建pixbuf
-	pixbuf, _ := gdkpixbuf.NewPixbufFromFileAtScale(filename, w-10, h-10, false)
-	//给image设置图片
-	image.SetFromPixbuf(pixbuf)
-	//释放图片
-	pixbuf.Unref()
-}
-
+//创建窗口相关
 func (obj *Chessboard) CreateWindow() {
 	//读取glade
 	builder := gtk.NewBuilder()
@@ -132,6 +136,7 @@ func (obj *Chessboard) CreateWindow() {
 	obj.gridW, obj.gridH = 50, 40
 }
 
+//鼠标点击事件
 func MousePressEvent(ctx *glib.CallbackContext) {
 	arg := ctx.Args(0)
 	event := *(**gdk.EventButton)(unsafe.Pointer(&arg))
@@ -148,26 +153,21 @@ func MousePressEvent(ctx *glib.CallbackContext) {
 	x := (obj.x - obj.startX) / obj.gridW
 	y := (obj.y - obj.startY) / obj.gridH
 
+	if obj.CurrentRole == White {
+		return
+	}
+
 	if x >= 0 && x <= 7 && y >= 0 && y <= 7 {
-		obj.chess[x][y] = obj.CurrentRole
-		obj.window.QueueDraw()
-		//改变角色
-		obj.ChangeRole()
+		//下棋
+		if obj.JudgeRule(x, y, obj.CurrentRole, true) > 0 {
+			//改变角色
+			obj.ChangeRole()
+			obj.window.QueueDraw()
+		}
 	}
 }
 
-func (obj *Chessboard) ChangeRole() {
-	obj.timeNum = 20
-	obj.labelTime.SetText(strconv.Itoa(obj.timeNum))
-	obj.imgWhite.Hide()
-	obj.imgBlack.Hide()
-	if obj.CurrentRole == Black {
-		obj.CurrentRole = White
-	} else {
-		obj.CurrentRole = Black
-	}
-}
-
+//鼠标移动事件
 func MouseMoveEvent(ctx *glib.CallbackContext) {
 	arg := ctx.Args(0)
 	event := *(**gdk.EventButton)(unsafe.Pointer(&arg))
@@ -184,6 +184,7 @@ func MouseMoveEvent(ctx *glib.CallbackContext) {
 	obj.window.Move(x, y)
 }
 
+//刷新窗口事件
 func PaintEvent(ctx *glib.CallbackContext) {
 	//获取用户传递的参数
 	data := ctx.Data()
@@ -221,6 +222,7 @@ func PaintEvent(ctx *glib.CallbackContext) {
 	whitePixbuf.Unref()
 }
 
+//注册信号
 func (obj *Chessboard) HandleSignal() {
 	//鼠标点击事件
 	obj.window.Connect("button-press-event", MousePressEvent, obj)
@@ -230,6 +232,8 @@ func (obj *Chessboard) HandleSignal() {
 
 	//关闭按钮
 	obj.buttonClose.Clicked(func() {
+		glib.TimeoutRemove(obj.tipTimeId)
+		glib.TimeoutRemove(obj.endTimeId)
 		gtk.MainQuit()
 	})
 
@@ -250,6 +254,7 @@ func (obj *Chessboard) HandleSignal() {
 
 }
 
+//更改下棋方图片
 func showTip(obj *Chessboard) {
 	if obj.CurrentRole == Black {
 		//隐藏白子
@@ -269,6 +274,125 @@ func showTip(obj *Chessboard) {
 	}
 }
 
+//判断胜负
+func (obj *Chessboard) judgeResult() {
+	isOver := true
+	blackNum, whiteNum := 0, 0
+
+	for i := 0; i < 8; i++ {
+		for j := 0; j < 8; j++ {
+			if obj.chess[i][j] == Black {
+				blackNum++
+			} else if obj.chess[i][j] == White {
+				whiteNum++
+			}
+			if obj.JudgeRule(i, j, Black, false) > 0 || obj.JudgeRule(i, j, White, false) > 0 {
+				isOver = false
+			}
+		}
+	}
+
+	//更改界面显示
+	obj.labelBlack.SetText(strconv.Itoa(blackNum))
+	obj.labelWhite.SetText(strconv.Itoa(whiteNum))
+
+	if isOver == false {
+		return
+	}
+
+	//结束游戏
+	glib.TimeoutRemove(obj.tipTimeId)
+	glib.TimeoutRemove(obj.endTimeId)
+
+	//胜负判断
+	var result string
+	if blackNum > whiteNum {
+		result = "（我）蓝方胜\n是否继续游戏？"
+	} else if blackNum < whiteNum {
+		result = "（机器）红方胜\n是否继续游戏？"
+	} else {
+		result = "平局\n是否继续游戏？"
+	}
+
+	//问题对话框
+	dialog := gtk.NewMessageDialog(
+		obj.window,
+		gtk.DIALOG_MODAL,
+		gtk.MESSAGE_QUESTION,
+		gtk.BUTTONS_YES_NO,
+		result)
+	ret := dialog.Run()
+	if ret == gtk.RESPONSE_YES {
+		obj.InitChess()
+	} else {
+		gtk.MainQuit()
+	}
+	dialog.Destroy()
+}
+
+//机器落子
+func (obj *Chessboard) MachinePlay() {
+	glib.TimeoutRemove(obj.machineTimerId)
+
+	max, x, y := 0, -1, -1
+
+	//优先落子在4个角落
+	for i := 0; i < 8; i++ {
+		for j := 0; j < 8; j++ {
+			num := obj.JudgeRule(i, j, obj.CurrentRole, false)
+			if num > 0 {
+				if (i == 0 && j == 0) || (i == 0 && j == 7) || (i == 7 && j == 0) || (i == 7 && j == 7) {
+					x, y = i, j
+					goto END
+				}
+
+				if num > max {
+					max, x, y = num, i, j
+				}
+			}
+		}
+	}
+
+END:
+	if x == -1 {
+		obj.ChangeRole()
+		return
+	}
+
+	//机器吃子
+	obj.JudgeRule(x, y, obj.CurrentRole, true)
+	obj.ChangeRole()
+	obj.window.QueueDraw()
+}
+
+//改变角色
+func (obj *Chessboard) ChangeRole() {
+	obj.timeNum = 20
+	obj.labelTime.SetText(strconv.Itoa(obj.timeNum))
+	obj.imgWhite.Hide()
+	obj.imgBlack.Hide()
+	if obj.CurrentRole == Black {
+		obj.CurrentRole = White
+	} else {
+		obj.CurrentRole = Black
+	}
+	obj.judgeResult()
+
+	if obj.CurrentRole == White {
+		obj.machineTimerId = glib.TimeoutAdd(1000, func() bool {
+			obj.MachinePlay()
+			return true
+		})
+	}
+}
+
+//下棋规则
+func (obj *Chessboard) JudgeRule(x, y int, role int, eatChess bool) (eatNum int) {
+	eatNum = 1
+	return
+}
+
+//初始化棋盘
 func (obj *Chessboard) InitChess() {
 	//初始化棋盘
 	for i := 0; i < 8; i++ {
@@ -281,8 +405,16 @@ func (obj *Chessboard) InitChess() {
 	obj.chess[4][4] = Black
 	obj.chess[4][3] = White
 	obj.chess[3][4] = White
+
+	//更新棋盘
+	obj.window.QueueDraw()
+
+	obj.labelBlack.SetText("2")
+	obj.labelWhite.SetText("2")
+
 	obj.imgBlack.Hide()
 	obj.imgWhite.Hide()
+
 	//黑子先下
 	obj.CurrentRole = Black
 	//启动定时器
