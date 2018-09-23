@@ -62,7 +62,7 @@
             <property name="label" translatable="yes">label</property>
           </object>
           <packing>
-            <property name="x">630</property>
+            <property name="x">632</property>
             <property name="y">85</property>
           </packing>
         </child>
