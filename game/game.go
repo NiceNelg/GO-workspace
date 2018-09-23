@@ -342,7 +342,6 @@ func (obj *Chessboard) MachinePlay() {
 		for j := 0; j < 8; j++ {
 			num := obj.JudgeRule(i, j, obj.CurrentRole, false)
 			if num > 0 {
-				fmt.Println(num, i, j)
 				if (i == 0 && j == 0) || (i == 0 && j == 7) || (i == 7 && j == 0) || (i == 7 && j == 7) {
 					x, y = i, j
 					goto END
@@ -392,10 +391,14 @@ func (obj *Chessboard) ChangeRole() {
 func (obj *Chessboard) JudgeRule(x, y int, role int, eatChess bool) (eatNum int) {
 	eatNum = 0
 	canEat := make([][2]int, 0)
+	if obj.chess[x][y] != Empty {
+		return
+	}
 	//遍历方向
 	for _, d := range obj.direction {
 		num := 0
 		chess := make([][2]int, 0)
+		can := false
 		//判断方向是否允许且此方向的结束是否有自己方的棋子
 		postion := [2]int{x, y}
 		for {
@@ -406,6 +409,7 @@ func (obj *Chessboard) JudgeRule(x, y int, role int, eatChess bool) (eatNum int)
 			}
 			//规则
 			if obj.chess[postion[0]][postion[1]] == role {
+				can = true
 				//己方棋子
 				break
 			} else if (obj.chess[postion[0]][postion[1]] != role) && (obj.chess[postion[0]][postion[1]] != Empty) {
@@ -420,7 +424,7 @@ func (obj *Chessboard) JudgeRule(x, y int, role int, eatChess bool) (eatNum int)
 			}
 		}
 		//记录棋子
-		if num > 0 {
+		if num > 0 && can {
 			eatNum += num
 			canEat = append(canEat, chess...)
 		}
@@ -428,12 +432,14 @@ func (obj *Chessboard) JudgeRule(x, y int, role int, eatChess bool) (eatNum int)
 	if !eatChess {
 		return
 	}
-	//吃棋
-	for _, eat := range canEat {
-		obj.chess[eat[0]][eat[1]] = role
+	if eatNum > 0 {
+		//吃棋
+		for _, eat := range canEat {
+			obj.chess[eat[0]][eat[1]] = role
+		}
+		//下子
+		obj.chess[x][y] = role
 	}
-	//下子
-	obj.chess[x][y] = role
 	return
 }
 
