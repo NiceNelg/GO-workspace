@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"unsafe"
 
 	"github.com/mattn/go-gtk/gdk"
@@ -38,6 +39,8 @@ type Chessboard struct {
 
 	CurrentRole int
 	tipTimeId   int
+	endTimeId   int
+	timeNum     int
 
 	chess [8][8]int
 }
@@ -146,8 +149,22 @@ func MousePressEvent(ctx *glib.CallbackContext) {
 	y := (obj.y - obj.startY) / obj.gridH
 
 	if x >= 0 && x <= 7 && y >= 0 && y <= 7 {
-		obj.chess[x][y] = White
+		obj.chess[x][y] = obj.CurrentRole
 		obj.window.QueueDraw()
+		//改变角色
+		obj.ChangeRole()
+	}
+}
+
+func (obj *Chessboard) ChangeRole() {
+	obj.timeNum = 20
+	obj.labelTime.SetText(strconv.Itoa(obj.timeNum))
+	obj.imgWhite.Hide()
+	obj.imgBlack.Hide()
+	if obj.CurrentRole == Black {
+		obj.CurrentRole = White
+	} else {
+		obj.CurrentRole = Black
 	}
 }
 
@@ -253,6 +270,17 @@ func showTip(obj *Chessboard) {
 }
 
 func (obj *Chessboard) InitChess() {
+	//初始化棋盘
+	for i := 0; i < 8; i++ {
+		for j := 0; j < 8; j++ {
+			obj.chess[i][j] = Empty
+		}
+	}
+	//默认各方有两个棋子
+	obj.chess[3][3] = Black
+	obj.chess[4][4] = Black
+	obj.chess[4][3] = White
+	obj.chess[3][4] = White
 	obj.imgBlack.Hide()
 	obj.imgWhite.Hide()
 	//黑子先下
@@ -260,6 +288,19 @@ func (obj *Chessboard) InitChess() {
 	//启动定时器
 	obj.tipTimeId = glib.TimeoutAdd(500, func() bool {
 		showTip(obj)
+		return true
+	})
+	//倒计时定时器
+	obj.timeNum = 20
+	obj.labelTime.SetText(strconv.Itoa(obj.timeNum))
+
+	//启动下子定时器
+	obj.endTimeId = glib.TimeoutAdd(1000, func() bool {
+		obj.timeNum--
+		obj.labelTime.SetText(strconv.Itoa(obj.timeNum))
+		if obj.timeNum == 0 {
+			obj.ChangeRole()
+		}
 		return true
 	})
 }
