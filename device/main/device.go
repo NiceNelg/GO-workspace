@@ -1,10 +1,11 @@
 package main
 
 import (
-	"../device"
+	"../lib/server"
 )
 
 func main() {
 	//初始化连接
-	device.Start()
+	serv := server.Init()
+	serv.Start()
 }
