@@ -9,13 +9,15 @@ import (
 	"../config"
 	"../handle"
 	"../protocol808"
+	"github.com/garyburd/redigo/redis"
 )
 
 //服务器
 type Server struct {
-	ip     string
-	port   string
-	config config.Config
+	ip        string
+	port      string
+	config    config.Config
+	redisPool *redis.Pool
 }
 
 //设备
@@ -34,10 +36,13 @@ type Client struct {
  * @Function 初始化服务
  * @Auther Nelg
  */
-func Init() (serv Server) {
-	//获取配置
-	serverConfig := config.GetConfig()
-	serv = Server{ip: serverConfig.ServerIp, port: serverConfig.ServerPort, config: serverConfig}
+func Init(allConfig config.Config, redisPool *redis.Pool) (serv Server) {
+	serv = Server{
+		ip:        allConfig.ServerIp,
+		port:      allConfig.ServerPort,
+		config:    allConfig,
+		redisPool: redisPool,
+	}
 	return
 }
 
@@ -53,6 +58,10 @@ func (this *Server) Start() {
 		fmt.Println("Start server error：", err)
 		os.Exit(-1)
 	}
+
+	//实例化数据处理对象
+	handleObj := handle.Init(this.redisPool, this.config)
+
 	//监听端口
 	tcpListener, _ := net.ListenTCP("tcp", tcpAddr)
 	for {
@@ -61,7 +70,7 @@ func (this *Server) Start() {
 		//记录连接
 		cli := Client{conn: tcpConn, heart: this.config.HeartTimeOut}
 		//新建设备协程
-		go cli.deviceCoroutines()
+		go cli.deviceCoroutines(handleObj)
 	}
 }
 
@@ -69,7 +78,7 @@ func (this *Server) Start() {
  * @Function 设备协程
  * @Auther Nelg
  */
-func (this *Client) deviceCoroutines() {
+func (this *Client) deviceCoroutines(handleObj handle.Handle) {
 	//协程结束后关闭连接
 	defer this.conn.Close()
 	for {
@@ -83,11 +92,11 @@ func (this *Client) deviceCoroutines() {
 		} else if length <= 0 {
 			continue
 		}
-		//截取数据包
+		//TODO 截取数据包（不同协议需要更换包）
 		var dataArray [][]byte
 		dataArray, this.buffer = protocol808.Cutpack(readData[0:length], this.buffer)
 		//存入处理队列
-		go handle.SaveTask(dataArray)
+		go handleObj.SaveTask(&this.id, dataArray)
 	}
 
 }

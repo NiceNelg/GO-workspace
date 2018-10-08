@@ -2,6 +2,7 @@ package protocol808
 
 import (
 	"encoding/hex"
+	"errors"
 
 	"../data"
 )
@@ -106,19 +107,19 @@ func Cutpack(content []byte, buffer []byte) (dataArray [][]byte, inComplete []by
  * @Function 解析数据包结构体（不同协议需要重写，目前使用的是808协议）
  * @Auther Nelg
  */
-func Resolvepack(cmd []byte) (data data.Data) {
+func Resolvepack(cmd []byte) (data data.Data, err error) {
 	if len(cmd) <= 0 {
-		return
+		return data, errors.New("data don't exist")
 	}
 	//数据转义
 	cmd = reverseEscape(cmd)
 	if len(cmd) <= 0 {
-		return
+		return data, errors.New("data escape fail")
 	}
 	//异或校验
 	xor := buildBCC(cmd[1 : len(cmd)-2])
 	if cmd[len(cmd)-2] != xor {
-		return
+		return data, errors.New("data BCC fail")
 	}
 	//数据结构解析
 	data.Sign = hex.EncodeToString(cmd[1:3])
@@ -126,7 +127,7 @@ func Resolvepack(cmd []byte) (data data.Data) {
 	data.Device = hex.EncodeToString(cmd[5:11])
 	data.Sn = hex.EncodeToString(cmd[11:13])
 	data.Content = hex.EncodeToString(cmd[13 : len(cmd)-2])
-	return
+	return data, nil
 }
 
 /**

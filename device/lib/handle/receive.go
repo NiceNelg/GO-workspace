@@ -1,10 +1,8 @@
 package handle
 
 import (
-	"fmt"
-	"os"
+	"encoding/json"
 
-	//"../data"
 	"../protocol808"
 )
 
@@ -12,15 +10,27 @@ import (
  * @Function 保存任务
  * @Auther Nelg
  */
-func SaveTask(dataArray [][]byte) {
+func (this *Handle) SaveTask(deviceId *string, dataArray [][]byte) {
 	if len(dataArray) <= 0 {
 		return
 	}
+	redisCli := this.redisPool.Get()
+	defer redisCli.Close()
 	//解析数据结构
 	for _, cmd := range dataArray {
-		data := protocol808.Resolvepack(cmd)
-		fmt.Println(cmd)
-		fmt.Println(data)
+		//TODO 解析数据结构（不同协议需要更换包）
+		data, err := protocol808.Resolvepack(cmd)
+		if err != nil {
+			continue
+		}
+		if *deviceId == "" {
+			*deviceId = data.Device
+		}
+		//存入redis
+		jsonData, err := json.MarshalIndent(data, "", " ")
+		if err != nil {
+			continue
+		}
+		redisCli.Do("lpush", this.handleList, string(jsonData))
 	}
-	os.Exit(0)
 }
