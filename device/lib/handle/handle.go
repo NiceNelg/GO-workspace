@@ -3,7 +3,6 @@ package handle
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
 
 	"../data"
@@ -46,7 +45,7 @@ func (this *Handle) invoke() {
 		if err != nil {
 			continue
 		}
-		hand.HandleBusiness()
+		hand.SaveToDatabase()
 	}
 }
 

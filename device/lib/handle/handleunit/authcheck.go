@@ -27,7 +27,7 @@ func AuthcheckInit(cmd data.Data) (authcheck *Authcheck) {
 	authcheck = new(Authcheck)
 	authcheck.Data = cmd
 	authcheck.storedCache = true
-	authcheck.storedDatabase = false
+	authcheck.storedDatabase = true
 	return
 }
 

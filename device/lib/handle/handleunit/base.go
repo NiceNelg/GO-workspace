@@ -1,6 +1,8 @@
 package handleunit
 
 import (
+	"fmt"
+
 	"../../data"
 )
 
@@ -24,5 +26,8 @@ func (this *HandUnit) SaveToSendList() {
 }
 
 func (this *HandUnit) SaveToDatabase() {
-
+	if !this.storedDatabase {
+		return
+	}
+	fmt.Println("HH")
 }
