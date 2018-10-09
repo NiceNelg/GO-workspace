@@ -2,9 +2,12 @@ package handle
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"time"
 
 	"../data"
+	"./handleunit"
 	"github.com/garyburd/redigo/redis"
 )
 
@@ -13,7 +16,6 @@ import (
  * @Auther Nelg
  */
 func (this *Handle) StartHandle() {
-	return
 	for i := 0; i < this.worknum; i++ {
 		go this.invoke()
 	}
@@ -40,7 +42,11 @@ func (this *Handle) invoke() {
 			continue
 		}
 		//分发业务
-		this.dispense(cmd)
+		hand, err := this.dispense(cmd)
+		if err != nil {
+			continue
+		}
+		hand.HandleBusiness()
 	}
 }
 
@@ -48,9 +54,12 @@ func (this *Handle) invoke() {
  * @Function 分发业务（根据协议不同需要重写标识）
  * @Auther Nelg
  */
-func (this *Handle) dispense(cmd data.Data) {
+func (this *Handle) dispense(cmd data.Data) (unit handleunit.Hand, err error) {
 	switch cmd.Sign {
 	case "0102":
-
+		unit = handleunit.AuthcheckInit(cmd)
+	default:
+		errors.New("dispense failr")
 	}
+	return
 }
