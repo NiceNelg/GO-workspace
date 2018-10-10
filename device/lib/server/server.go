@@ -9,7 +9,6 @@ import (
 	"../config"
 	"../handle"
 	"../protocol808"
-	"github.com/garyburd/redigo/redis"
 )
 
 //服务器
@@ -17,7 +16,7 @@ type Server struct {
 	ip        string
 	port      string
 	config    config.Config
-	redisPool *redis.Pool
+	handleObj handle.Handle
 }
 
 //设备
@@ -36,12 +35,12 @@ type Client struct {
  * @Function 初始化服务
  * @Auther Nelg
  */
-func Init(allConfig config.Config, redisPool *redis.Pool) (serv Server) {
+func Init(allConfig config.Config, handleObj handle.Handle) (serv Server) {
 	serv = Server{
 		ip:        allConfig.ServerIp,
 		port:      allConfig.ServerPort,
 		config:    allConfig,
-		redisPool: redisPool,
+		handleObj: handleObj,
 	}
 	return
 }
@@ -59,9 +58,6 @@ func (this *Server) Start() {
 		os.Exit(-1)
 	}
 
-	//实例化数据处理对象
-	handleObj := handle.Init(this.redisPool, this.config)
-
 	//监听端口
 	tcpListener, _ := net.ListenTCP("tcp", tcpAddr)
 	for {
@@ -70,7 +66,7 @@ func (this *Server) Start() {
 		//记录连接
 		cli := Client{conn: tcpConn, heart: this.config.HeartTimeOut}
 		//新建设备协程
-		go cli.deviceCoroutines(handleObj)
+		go cli.deviceCoroutines(this.handleObj)
 	}
 }
 

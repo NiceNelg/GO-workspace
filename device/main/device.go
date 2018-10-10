@@ -3,6 +3,7 @@ package main
 import (
 	"../lib/config"
 	"../lib/handle"
+	"../lib/model"
 	"../lib/redispool"
 	"../lib/server"
 )
@@ -12,13 +13,28 @@ func main() {
 	allConfig := config.GetConfig()
 
 	//初始化redis
-	redisPool := redispool.NewPool(allConfig.RedisIp+":"+allConfig.RedisPort, allConfig.RedisPwd, allConfig.RedisDB)
+	redisPool := redispool.NewPool(
+		allConfig.RedisIp+":"+allConfig.RedisPort,
+		allConfig.RedisPwd,
+		allConfig.RedisDB,
+	)
 
+	//初始化数据库
+	db := model.Init(
+		allConfig.MysqlHost,
+		allConfig.MysqlPort,
+		allConfig.MysqlUsername,
+		allConfig.MysqlPwd,
+		allConfig.MysqlDatabase,
+	)
+	defer db.Close()
+
+	//实例化数据处理对象
+	handleObj := handle.Init(db, redisPool, allConfig)
 	//开启数据处理队列
-	handleObj := handle.Init(redisPool, allConfig)
 	handleObj.StartHandle()
 
 	//初始化连接
-	serv := server.Init(allConfig, redisPool)
+	serv := server.Init(allConfig, handleObj)
 	serv.Start()
 }

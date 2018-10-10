@@ -18,6 +18,13 @@ type Config struct {
 	RedisPwd  string
 	RedisDB   string
 
+	//数据库相关
+	MysqlHost     string
+	MysqlPort     string
+	MysqlUsername string
+	MysqlPwd      string
+	MysqlDatabase string
+
 	//队列相关
 	HandleList string
 	SendList   string
@@ -55,6 +62,13 @@ func GetConfig() (config Config) {
 	config.RedisPort = allConfig.String("redis.port")
 	config.RedisPwd = allConfig.String("redis.pwd")
 	config.RedisDB = allConfig.String("redis.db")
+
+	//mysql相关
+	config.MysqlHost = allConfig.String("mysql.host")
+	config.MysqlPort = allConfig.String("mysql.port")
+	config.MysqlUsername = allConfig.String("mysql.username")
+	config.MysqlPwd = allConfig.String("mysql.pwd")
+	config.MysqlDatabase = allConfig.String("mysql.database")
 
 	//队列相关
 	config.HandleList = allConfig.String("list.handle")
