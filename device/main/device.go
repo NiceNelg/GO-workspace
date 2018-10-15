@@ -21,10 +21,10 @@ func main() {
 
 	//初始化数据库
 	db := model.Init(
-		allConfig.MysqlHost,
-		allConfig.MysqlPort,
 		allConfig.MysqlUsername,
 		allConfig.MysqlPwd,
+		allConfig.MysqlHost,
+		allConfig.MysqlPort,
 		allConfig.MysqlDatabase,
 	)
 	defer db.Close()

@@ -45,16 +45,23 @@ func (this *Handle) invoke() {
 		if err != nil {
 			continue
 		}
-		hand.SaveToDatabase()
+		//处理业务
+		send := hand.HandleBusiness()
+		//若没有返回发送对象则代表此数据包不需要下发
+		if send == nil {
+			continue
+		}
+		send.SaveToDatabase(this.db)
 	}
 }
 
 /**
- * @Function 分发业务（根据协议不同需要重写标识）
+ * @Function 分发业务
  * @Auther Nelg
  */
 func (this *Handle) dispense(cmd data.Data) (unit handleunit.Hand, err error) {
 	switch cmd.Sign {
+	//TODO 初始化业务结构体并解析协议内容（根据协议不同需要重写标识）
 	case "0102":
 		unit = handleunit.AuthcheckInit(cmd)
 	default:
