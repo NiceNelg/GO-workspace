@@ -51,8 +51,10 @@ func (this *Handle) invoke() {
 		if send == nil {
 			continue
 		}
+		//存入数据库
 		send.SaveToDatabase(this.db)
-		send.SaveToSendList()
+		//存入redis队列
+		send.SaveToSendList(this.redisPool, this.sendList)
 	}
 }
 

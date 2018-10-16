@@ -112,12 +112,12 @@ func Resolvepack(cmd []byte) (data data.Data, err error) {
 		return data, errors.New("data don't exist")
 	}
 	//数据转义
-	cmd = reverseEscape(cmd)
+	cmd = ReverseEscape(cmd)
 	if len(cmd) <= 0 {
 		return data, errors.New("data escape fail")
 	}
 	//异或校验
-	xor := buildBCC(cmd[1 : len(cmd)-2])
+	xor := BuildBCC(cmd[1 : len(cmd)-2])
 	if cmd[len(cmd)-2] != xor {
 		return data, errors.New("data BCC fail")
 	}
@@ -134,7 +134,7 @@ func Resolvepack(cmd []byte) (data data.Data, err error) {
  * @Function 数据转义
  * @Auther Nelg
  */
-func escape(cmd []byte) (data []byte) {
+func Escape(cmd []byte) (data []byte) {
 	temp := make([]byte, 0)
 	//转义
 	cmdMaxIndex := len(cmd) - 1
@@ -160,7 +160,7 @@ func escape(cmd []byte) (data []byte) {
  * @Function 数据反转义
  * @Auther Nelg
  */
-func reverseEscape(cmd []byte) (data []byte) {
+func ReverseEscape(cmd []byte) (data []byte) {
 	if len(cmd) <= 0 {
 		return
 	}
@@ -192,7 +192,7 @@ func reverseEscape(cmd []byte) (data []byte) {
  * @Function 计算校验和
  * @Auther Nelg
  */
-func buildBCC(content []byte) (xor byte) {
+func BuildBCC(content []byte) (xor byte) {
 	xor = 0x00
 	for _, value := range content {
 		xor ^= value

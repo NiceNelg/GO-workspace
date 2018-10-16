@@ -29,7 +29,7 @@ func AuthcheckInit(cmd data.Data) (authcheck *Authcheck) {
 }
 
 /**
- * @Function 业务处理
+ * @Function 业务处理	需要数据下发的时候请返回Hand结构体
  * @Auther Nelg
  */
 func (this *Authcheck) HandleBusiness() (sendCmd Hand) {
