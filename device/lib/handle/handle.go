@@ -52,6 +52,7 @@ func (this *Handle) invoke() {
 			continue
 		}
 		send.SaveToDatabase(this.db)
+		send.SaveToSendList()
 	}
 }
 

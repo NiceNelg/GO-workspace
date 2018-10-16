@@ -33,6 +33,19 @@ func (this *HandUnit) SaveToDatabase(db *sql.DB) {
 		return
 	}
 	commandModel := model.CommandModelInit(db)
-	this.Sn = strconv.FormatInt(commandModel.SaveCommand(this.Data), 10)
-	fmt.Println(this.Sn)
+	//保存指令
+	id := commandModel.SaveCommand(this.Data)
+	sn := strconv.FormatInt(id, 16)
+	l := 4 - len(sn)
+	if l > 0 {
+		var zero string
+		for i := 0; i < l; i++ {
+			zero += "0"
+		}
+		sn = zero + sn
+	}
+	this.Sn = sn
+	//更新指令流水号
+	commandModel.SaveSn(id, this.Sn)
+	return
 }
