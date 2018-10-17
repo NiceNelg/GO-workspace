@@ -22,20 +22,28 @@ func (this *Handle) Send(Device *string, conn *net.TCPConn) {
 			continue
 		}
 		//从redis中取出连接
-		redisCli := this.redisPool.Get()
 		failrCmd := make([]string, 1)
-		for redisData, err := redis.String(redisCli.Do("rpop", this.sendList+"_"+*Device)); err == nil; {
+		for {
+			redisCli := this.redisPool.Get()
+			redisData, err := redis.String(redisCli.Do("rpop", this.sendList+"_"+*Device))
+			//归还redis连接到redis连接池
+			redisCli.Close()
+			if err != nil || redisData == "" {
+				break
+			}
 			//解析json数据
 			var cmd data.Data
-			err := json.Unmarshal([]byte(redisData), &cmd)
+			err = json.Unmarshal([]byte(redisData), &cmd)
 			if cmd.Content == "" {
 				continue
 			}
+
 			//TODO 可按需重写标志位
 			data, err := hex.DecodeString(cmd.Content)
 			//添加标识头尾
 			data = append(data, 0x7e)
 			data = append([]byte{0x7e}, data...)
+
 			//发送数据，检测发送时间是否已到
 			if time.Now().Unix()-cmd.Sendtime >= this.sendtime {
 				_, err = conn.Write(data)
@@ -48,7 +56,12 @@ func (this *Handle) Send(Device *string, conn *net.TCPConn) {
 						failrCmd = append(failrCmd, string(addCmd))
 					}
 					for _, cmd := range failrCmd {
+						if cmd == "" {
+							continue
+						}
+						redisCli := this.redisPool.Get()
 						redisCli.Do("lpush", this.sendList+"_"+*Device, cmd)
+						redisCli.Close()
 					}
 					return
 				}
@@ -57,10 +70,13 @@ func (this *Handle) Send(Device *string, conn *net.TCPConn) {
 			}
 		}
 		for _, cmd := range failrCmd {
+			if cmd == "" {
+				continue
+			}
+			redisCli := this.redisPool.Get()
 			redisCli.Do("lpush", this.sendList+"_"+*Device, cmd)
+			redisCli.Close()
 		}
-		//归还redis连接到redis连接池
-		redisCli.Close()
 		time.Sleep(1 * time.Second)
 	}
 	return

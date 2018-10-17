@@ -35,6 +35,7 @@ func AuthcheckInit(cmd data.Data) (authcheck *Authcheck) {
 func (this *Authcheck) HandleBusiness() (sendCmd Hand) {
 	authCheck := &Authcheck{}
 	authCheck.Sign = "8102"
+	authCheck.Sn = this.Sn
 	authCheck.Device = this.Device
 	authCheck.Body = make(map[string]string, 4)
 	authCheck.Body["ack_sn"] = this.Sn
@@ -42,7 +43,7 @@ func (this *Authcheck) HandleBusiness() (sendCmd Hand) {
 	authCheck.Body["result"] = "00"
 	//获取当前时间
 	authCheck.Body["time"] = time.Now().Format("060102150405")
-	authCheck.StoredDatabase = true
+	authCheck.StoredDatabase = false
 	authCheck.StoredCache = true
 	sendCmd = authCheck
 	return

@@ -23,9 +23,9 @@ type Hand interface {
 type HandUnit struct {
 	data.Data
 	//是否存储到缓存
-	StoredCache bool
+	StoredCache bool `json:"-"`
 	//是否记录到数据库
-	StoredDatabase bool
+	StoredDatabase bool `json:"-"`
 }
 
 /**
@@ -39,12 +39,9 @@ func (this *HandUnit) SaveToSendList(redisPool *redis.Pool, sendList string) {
 	cmd, _ := json.Marshal(this)
 	//从redis中取出连接
 	redisCli := redisPool.Get()
-	_, err := redisCli.Do("lpush", sendList+"_"+this.Device, string(cmd))
-	if err != nil {
-		return
-	}
 	//归还redis连接到redis连接池
-	redisCli.Close()
+	defer redisCli.Close()
+	redisCli.Do("lpush", sendList+"_"+this.Device, string(cmd))
 }
 
 /**
