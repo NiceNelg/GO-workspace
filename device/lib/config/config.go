@@ -39,7 +39,7 @@ type Config struct {
 
 	//处理数据相关
 	Worknum  int
-	Sendtime int
+	Sendtime int64
 	Sendnum  int
 }
 
@@ -84,7 +84,7 @@ func GetConfig() (config Config) {
 
 	//处理数据相关
 	config.Worknum, _ = allConfig.Int("handle.worknum")
-	config.Sendtime, _ = allConfig.Int("handle.sendtime")
-	config.Sendnum, _ = allConfig.Int("handle.sendnum")
+	config.Sendtime, _ = allConfig.Int64("handle.sendtime")
+	config.Sendnum, err = allConfig.Int("handle.sendnum")
 	return
 }

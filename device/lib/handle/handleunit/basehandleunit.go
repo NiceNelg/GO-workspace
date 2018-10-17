@@ -3,7 +3,7 @@ package handleunit
 import (
 	"database/sql"
 	"encoding/hex"
-	"fmt"
+	"encoding/json"
 	"strconv"
 
 	"../../../tool"
@@ -16,7 +16,7 @@ import (
 type Hand interface {
 	HandleBusiness() Hand
 	HandleSend()
-	SaveToSendList(redisPool *redis.Pool, sendList string)
+	SaveToSendList(*redis.Pool, string)
 	SaveToDatabase(db *sql.DB)
 }
 
@@ -36,12 +36,12 @@ func (this *HandUnit) SaveToSendList(redisPool *redis.Pool, sendList string) {
 	if !this.StoredCache {
 		return
 	}
-	this.HandleSend()
+	cmd, _ := json.Marshal(this)
 	//从redis中取出连接
 	redisCli := redisPool.Get()
-	_, err := redisCli.Do("lpush", sendList+this.Device)
+	_, err := redisCli.Do("lpush", sendList+"_"+this.Device, string(cmd))
 	if err != nil {
-
+		return
 	}
 	//归还redis连接到redis连接池
 	redisCli.Close()
@@ -65,6 +65,10 @@ func (this *HandUnit) SaveToDatabase(db *sql.DB) {
 	return
 }
 
+/**
+ * @Function 组成发送数据	//TODO 可按需重写
+ * @Auther Nelg
+ */
 func (this *HandUnit) HandleSend() {
 	//组成发送数据
 	content := this.Body["ack_sign"] + this.Body["ack_sn"] + this.Body["result"]
@@ -76,9 +80,6 @@ func (this *HandUnit) HandleSend() {
 	dataByte = append(dataByte, protocol808.BuildBCC(dataByte))
 	//转义
 	dataByte = protocol808.Escape(dataByte)
-	//添加标识头尾
-	dataByte = append(dataByte, 0x7e)
-	dataByte = append([]byte{0x7e}, dataByte...)
 	this.Content = hex.EncodeToString(dataByte)
 	return
 }

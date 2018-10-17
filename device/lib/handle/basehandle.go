@@ -20,7 +20,7 @@ type Handle struct {
 
 	//处理数据相关
 	worknum  int
-	sendtime int
+	sendtime int64
 	sendnum  int
 }
 

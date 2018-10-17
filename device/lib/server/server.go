@@ -63,8 +63,11 @@ func (this *Server) Start() {
 	for {
 		//接受连接请求
 		tcpConn, _ := tcpListener.AcceptTCP()
-		//记录连接
-		cli := Client{conn: tcpConn, heart: this.config.HeartTimeOut}
+		//实例化客户端
+		cli := Client{
+			conn:  tcpConn,
+			heart: this.config.HeartTimeOut,
+		}
 		//新建设备协程
 		go cli.deviceCoroutines(this.handleObj)
 	}
@@ -77,6 +80,9 @@ func (this *Server) Start() {
 func (this *Client) deviceCoroutines(handleObj handle.Handle) {
 	//协程结束后关闭连接
 	defer this.conn.Close()
+	//开启发送协程
+	go handleObj.Send(&this.id, this.conn)
+	//接收数据
 	for {
 		//设置连接存活时间
 		this.conn.SetReadDeadline(time.Now().Add(time.Duration(this.heart) * time.Second))

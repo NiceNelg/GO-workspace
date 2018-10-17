@@ -11,7 +11,6 @@ import (
 func main() {
 	//获取配置
 	allConfig := config.GetConfig()
-
 	//初始化redis
 	redisPool := redispool.NewPool(
 		allConfig.RedisIp+":"+allConfig.RedisPort,

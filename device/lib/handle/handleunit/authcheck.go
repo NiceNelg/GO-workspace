@@ -52,6 +52,5 @@ func (this *Authcheck) HandleBusiness() (sendCmd Hand) {
  * @Function 数据下发处理
  * @Auther Nelg
  */
-func (this *Authcheck) HandleSend() {
-
-}
+//func (this *Authcheck) HandleSend() {
+//}

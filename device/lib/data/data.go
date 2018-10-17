@@ -25,7 +25,7 @@ type Data struct {
 	//未解包数据（不含协议头及协议尾，对于16进制数据已转换成可视化数据）
 	Content string `json:"content"`
 	//发送时间
-	Sendtime int `json:"sendtime"`
+	Sendtime int64 `json:"sendtime"`
 	//发送次数
 	Sendnum int `json:"sendnum"`
 }

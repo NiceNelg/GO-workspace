@@ -18,6 +18,7 @@ func (this *Handle) StartHandle() {
 	for i := 0; i < this.worknum; i++ {
 		go this.invoke()
 	}
+	return
 }
 
 /**
@@ -53,9 +54,12 @@ func (this *Handle) invoke() {
 		}
 		//存入数据库
 		send.SaveToDatabase(this.db)
+		//组成发送数据
+		send.HandleSend()
 		//存入redis队列
 		send.SaveToSendList(this.redisPool, this.sendList)
 	}
+	return
 }
 
 /**
@@ -68,7 +72,7 @@ func (this *Handle) dispense(cmd data.Data) (unit handleunit.Hand, err error) {
 	case "0102":
 		unit = handleunit.AuthcheckInit(cmd)
 	default:
-		errors.New("dispense failr")
+		err = errors.New("dispense failr")
 	}
 	return
 }

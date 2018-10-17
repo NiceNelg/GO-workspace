@@ -35,7 +35,7 @@ func Cutpack(content []byte, buffer []byte) (dataArray [][]byte, inComplete []by
 	content = append(buffer, content...)
 	maxIndex := len(content) - 1
 	//数据切割
-	tempArray := make([][]byte, 0)
+	tempArray := make([][]byte, 1)
 	num := 0
 	for index, value := range content {
 		if value == 0x7e && index+1 <= maxIndex && content[index+1] != 0x7e {
@@ -109,17 +109,20 @@ func Cutpack(content []byte, buffer []byte) (dataArray [][]byte, inComplete []by
  */
 func Resolvepack(cmd []byte) (data data.Data, err error) {
 	if len(cmd) <= 0 {
-		return data, errors.New("data don't exist")
+		err = errors.New("data don't exist")
+		return
 	}
 	//数据转义
 	cmd = ReverseEscape(cmd)
 	if len(cmd) <= 0 {
-		return data, errors.New("data escape fail")
+		err = errors.New("data escape fail")
+		return
 	}
 	//异或校验
 	xor := BuildBCC(cmd[1 : len(cmd)-2])
 	if cmd[len(cmd)-2] != xor {
-		return data, errors.New("data BCC fail")
+		err = errors.New("data BCC fail")
+		return
 	}
 	//数据结构解析
 	data.Sign = hex.EncodeToString(cmd[1:3])
@@ -127,7 +130,7 @@ func Resolvepack(cmd []byte) (data data.Data, err error) {
 	data.Device = hex.EncodeToString(cmd[5:11])
 	data.Sn = hex.EncodeToString(cmd[11:13])
 	data.Content = hex.EncodeToString(cmd[13 : len(cmd)-2])
-	return data, nil
+	return
 }
 
 /**
