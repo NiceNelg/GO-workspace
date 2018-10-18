@@ -77,7 +77,7 @@ func (this *Handle) Send(Device *string, conn *net.TCPConn) {
 			redisCli.Do("lpush", this.sendList+"_"+*Device, cmd)
 			redisCli.Close()
 		}
-		time.Sleep(1 * time.Second)
+		time.Sleep(1 * time.Microsecond)
 	}
 	return
 }
