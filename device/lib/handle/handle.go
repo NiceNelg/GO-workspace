@@ -33,7 +33,7 @@ func (this *Handle) invoke() {
 		//归还redis连接到redis连接池
 		redisCli.Close()
 		if err != nil || redisData == "" {
-			time.Sleep(1 * time.Microsecond)
+			time.Sleep(1 * time.Second)
 			continue
 		}
 		var cmd data.Data
