@@ -1,5 +1,10 @@
 package dbops
 
+import (
+	"video_server/api/defs"
+	"video_server/api/utils"
+)
+
 func AddUserCredential(userName string, pwd string) error {
 	stmtIns, err := dbConn.Prepare("INSERT INTO user(username, pwd) VALUES(?, ?)")
 	if err != nil {
@@ -29,4 +34,11 @@ func DeleteUserCredential(userName string, pwd string) error {
 	stmtDel.Exec(userName, pwd)
 	stmtDel.Close()
 	return nil
+}
+
+func AddNewVideo(aid int, name string) (*defs.VideoInfo, err) {
+	vid, err := utils.NewUUID()
+	if err != nil {
+		return nil, err
+	}
 }
