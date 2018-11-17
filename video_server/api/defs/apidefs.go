@@ -13,3 +13,16 @@ type VideoInfo struct {
 	Name        string
 	DisplayTime string
 }
+
+type Comment struct {
+	Id      string
+	VideoId string
+	Author  string
+	Content string
+}
+
+//Session DB
+type SimpleSession struct {
+	Username string
+	TTL      int64
+}
