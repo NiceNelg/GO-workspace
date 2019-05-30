@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"errors"
 
-	"../data"
+	"core/data"
 )
 
 /**

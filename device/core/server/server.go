@@ -6,17 +6,17 @@ import (
 	"os"
 	"time"
 
-	"../config"
-	"../handle"
-	"../protocol808"
+	"core/config"
+	"core/handle"
+	"core/protocol808"
 )
 
 //服务器
 type Server struct {
-	ip        string
-	port      string
-	config    config.Config
-	handleObj handle.Handle
+	ip      string
+	port    string
+	config  *config.Config
+	handler handle.Handle
 }
 
 //设备
@@ -35,12 +35,12 @@ type Client struct {
  * @Function 初始化服务
  * @Auther Nelg
  */
-func Init(allConfig config.Config, handleObj handle.Handle) (serv Server) {
+func Init(allConfig *config.Config, handler handle.Handle) (serv Server) {
 	serv = Server{
-		ip:        allConfig.ServerIp,
-		port:      allConfig.ServerPort,
-		config:    allConfig,
-		handleObj: handleObj,
+		ip:      allConfig.ServerIp,
+		port:    allConfig.ServerPort,
+		config:  allConfig,
+		handler: handler,
 	}
 	return
 }
@@ -69,7 +69,7 @@ func (this *Server) Start() {
 			heart: this.config.HeartTimeOut,
 		}
 		//新建设备协程
-		go cli.deviceCoroutines(this.handleObj)
+		go cli.deviceCoroutines(this.handler)
 	}
 }
 

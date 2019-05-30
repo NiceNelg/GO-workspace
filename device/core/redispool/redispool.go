@@ -9,11 +9,15 @@ import (
 /**
  * @Function 建立redis连接池
  * @Auther Nelg
+ * @Date 2019.05.30
  */
 func NewPool(server string, password string, db string) *redis.Pool {
 	return &redis.Pool{
-		MaxIdle:     3,
-		MaxActive:   100,
+		/*最大的空闲连接数*/
+		MaxIdle:     15,
+		/*最大的激活连接数*/
+		MaxActive:   500,
+		/*空闲连接超时关闭秒数*/
 		IdleTimeout: 240 * time.Second,
 		Dial: func() (redis.Conn, error) {
 			c, err := redis.Dial("tcp", server)

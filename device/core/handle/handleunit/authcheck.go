@@ -3,7 +3,7 @@ package handleunit
 import (
 	"time"
 
-	"../../data"
+	"core/data"
 )
 
 type Authcheck struct {
@@ -48,10 +48,3 @@ func (this *Authcheck) HandleBusiness() (sendCmd Hand) {
 	sendCmd = authCheck
 	return
 }
-
-/**
- * @Function 数据下发处理
- * @Auther Nelg
- */
-//func (this *Authcheck) HandleSend() {
-//}

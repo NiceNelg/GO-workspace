@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 
-	"../data"
+	"core/data"
 )
 
 type Command struct {

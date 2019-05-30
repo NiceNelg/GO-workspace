@@ -38,9 +38,9 @@ type Config struct {
 	HeartTimeOut int
 
 	//处理数据相关
-	Worknum  int
-	Sendtime int64
-	Sendnum  int
+	Worknum    int
+	Resendtime int64
+	Sendnum    int
 }
 
 /**
@@ -49,7 +49,7 @@ type Config struct {
  */
 func GetConfig() (config Config) {
 	//获取配置
-	allConfig, err := fconf.NewFileConf("../device.ini")
+	allConfig, err := fconf.NewFileConf("device.ini")
 	if err != nil {
 		os.Exit(-1)
 	}
@@ -84,7 +84,7 @@ func GetConfig() (config Config) {
 
 	//处理数据相关
 	config.Worknum, _ = allConfig.Int("handle.worknum")
-	config.Sendtime, _ = allConfig.Int64("handle.sendtime")
+	config.Resendtime, _ = allConfig.Int64("handle.resendtime")
 	config.Sendnum, err = allConfig.Int("handle.sendnum")
 	return
 }

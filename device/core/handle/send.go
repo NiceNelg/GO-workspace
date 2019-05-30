@@ -6,7 +6,7 @@ import (
 	"net"
 	"time"
 
-	"../data"
+	"core/data"
 	"github.com/garyburd/redigo/redis"
 )
 
@@ -45,7 +45,7 @@ func (this *Handle) Send(Device *string, conn *net.TCPConn) {
 			data = append([]byte{0x7e}, data...)
 
 			//发送数据，检测发送时间是否已到
-			if time.Now().Unix()-cmd.Sendtime >= this.sendtime {
+			if time.Now().Unix()-cmd.Sendtime >= this.resendtime {
 				_, err = conn.Write(data)
 				if err != nil {
 					//发送失败，检测发送次数是否已超出

@@ -6,13 +6,18 @@ import (
 	"encoding/json"
 	"strconv"
 
-	"../../../tool"
-	"../../data"
-	"../../model"
-	"../../protocol808"
+	"core/data"
+	"core/model"
+	"core/protocol808"
 	"github.com/garyburd/redigo/redis"
+	"tool"
 )
 
+/**
+ * @Interface 对数据进行操作的接口
+ * @Auther Nelg
+ * @Date 2019.05.30
+ */
 type Hand interface {
 	HandleBusiness() Hand
 	HandleSend()
@@ -20,17 +25,23 @@ type Hand interface {
 	SaveToDatabase(db *sql.DB)
 }
 
+/**
+ * @Struct 数据单元
+ * @Auther Nelg
+ * @Date 2019.05.30
+ */
 type HandUnit struct {
 	data.Data
-	//是否存储到缓存
+	/*是否存储到缓存*/
 	StoredCache bool `json:"-"`
-	//是否记录到数据库
+	/*是否记录到数据库*/
 	StoredDatabase bool `json:"-"`
 }
 
 /**
  * @Function 数据包存入发送队列	//TODO 可按需重写
  * @Auther Nelg
+ * @Date 2019.05.30
  */
 func (this *HandUnit) SaveToSendList(redisPool *redis.Pool, sendList string) {
 	if !this.StoredCache {
@@ -47,6 +58,7 @@ func (this *HandUnit) SaveToSendList(redisPool *redis.Pool, sendList string) {
 /**
  * @Function 数据包存入到数据库	//TODO 可按需重写
  * @Auther Nelg
+ * @Date 2019.05.30
  */
 func (this *HandUnit) SaveToDatabase(db *sql.DB) {
 	if !this.StoredDatabase {
@@ -65,6 +77,7 @@ func (this *HandUnit) SaveToDatabase(db *sql.DB) {
 /**
  * @Function 组成发送数据	//TODO 可按需重写
  * @Auther Nelg
+ * @Date 2019.05.30
  */
 func (this *HandUnit) HandleSend() {
 	//组成发送数据
